@@ -1,127 +1,121 @@
-import axios from 'axios';
-import {
-  Expense,
-  ExpenseCreate,
-  ExpenseUpdate,
-  AnalyticsOverview,
-  ChatMessage,
-  ChatResponse,
-  InsightsResponse,
-  DailyTrend,
-} from '../types';
+import { 
+  Expense, 
+  CreateExpenseRequest, 
+  UpdateExpenseRequest,
+  AnalyticsOverview 
+} from '../types/expense';
+import { 
+  ChatMessage, 
+  ChatResponse, 
+  InsightsResponse, 
+  CategorySuggestion 
+} from '../types/ai';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Generic API request function
+async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
 
-// Request/Response interceptors for error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error.response?.data || error.message);
-    return Promise.reject(error);
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.statusText}`);
   }
-);
 
-// Expense API
-export const expenseApi = {
-  // Create a new expense
-  create: async (expense: ExpenseCreate): Promise<Expense> => {
-    const response = await api.post('/expenses/', expense);
-    return response.data;
+  return response.json();
+}
+
+// Expense API functions
+export const expenseAPI = {
+  // Get all expenses
+  getExpenses: (params?: { skip?: number; limit?: number; category?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.skip) searchParams.append('skip', params.skip.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.category) searchParams.append('category', params.category);
+    
+    const query = searchParams.toString();
+    return apiRequest<Expense[]>(`/expenses${query ? `?${query}` : ''}`);
   },
 
-  // Get all expenses with optional filters
-  getAll: async (params?: {
-    skip?: number;
-    limit?: number;
-    category?: string;
-    start_date?: string;
-    end_date?: string;
-  }): Promise<Expense[]> => {
-    const response = await api.get('/expenses/', { params });
-    return response.data;
-  },
+  // Get single expense
+  getExpense: (id: number) =>
+    apiRequest<Expense>(`/expenses/${id}`),
 
-  // Get a specific expense
-  getById: async (id: number): Promise<Expense> => {
-    const response = await api.get(`/expenses/${id}`);
-    return response.data;
-  },
+  // Create expense
+  createExpense: (expense: CreateExpenseRequest) =>
+    apiRequest<Expense>('/expenses', {
+      method: 'POST',
+      body: JSON.stringify(expense),
+    }),
 
-  // Update an expense
-  update: async (id: number, expense: ExpenseUpdate): Promise<Expense> => {
-    const response = await api.put(`/expenses/${id}`, expense);
-    return response.data;
-  },
+  // Update expense
+  updateExpense: (id: number, expense: UpdateExpenseRequest) =>
+    apiRequest<Expense>(`/expenses/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(expense),
+    }),
 
-  // Delete an expense
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/expenses/${id}`);
-  },
+  // Delete expense
+  deleteExpense: (id: number) =>
+    apiRequest<{ message: string }>(`/expenses/${id}`, {
+      method: 'DELETE',
+    }),
 
-  // Get all categories
-  getCategories: async (): Promise<string[]> => {
-    const response = await api.get('/expenses/categories/list');
-    return response.data;
-  },
+  // Get categories
+  getCategories: () =>
+    apiRequest<string[]>('/expenses/categories/list'),
 };
 
-// AI Assistant API
-export const aiApi = {
-  // Chat with the AI assistant
-  chat: async (message: ChatMessage): Promise<ChatResponse> => {
-    const response = await api.post('/ai/chat', message);
-    return response.data;
-  },
+// AI API functions
+export const aiAPI = {
+  // Chat with AI assistant
+  chat: (message: ChatMessage) =>
+    apiRequest<ChatResponse>('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify(message),
+    }),
 
   // Get financial insights
-  getInsights: async (days: number = 30): Promise<InsightsResponse> => {
-    const response = await api.get('/ai/insights', {
-      params: { days },
-    });
-    return response.data;
+  getInsights: (days?: number) => {
+    const query = days ? `?days=${days}` : '';
+    return apiRequest<InsightsResponse>(`/ai/insights${query}`);
   },
 
-  // Get AI-suggested category for a description
-  categorizeDescription: async (description: string): Promise<string> => {
-    const response = await api.post('/ai/categorize', null, {
-      params: { description },
-    });
-    return response.data.suggested_category;
+  // Get category suggestion
+  categorizeDescription: (description: string) => {
+    const params = new URLSearchParams({ description });
+    return apiRequest<CategorySuggestion>(`/ai/categorize?${params}`);
   },
 };
 
-// Analytics API
-export const analyticsApi = {
+// Analytics API functions
+export const analyticsAPI = {
   // Get analytics overview
-  getOverview: async (months: number = 6): Promise<AnalyticsOverview> => {
-    const response = await api.get('/analytics/overview', {
-      params: { months },
-    });
-    return response.data;
+  getOverview: (months?: number) => {
+    const query = months ? `?months=${months}` : '';
+    return apiRequest<AnalyticsOverview>(`/analytics/overview${query}`);
   },
 
   // Get category analysis
-  getCategoryAnalysis: async (category: string, days: number = 90) => {
-    const response = await api.get(`/analytics/category/${category}`, {
-      params: { days },
-    });
-    return response.data;
+  getCategoryAnalysis: (category: string, days?: number) => {
+    const query = days ? `?days=${days}` : '';
+    return apiRequest<any>(`/analytics/category/${encodeURIComponent(category)}${query}`);
   },
 
   // Get daily trends
-  getDailyTrends: async (days: number = 30): Promise<{ trends: DailyTrend[] }> => {
-    const response = await api.get('/analytics/trends/daily', {
-      params: { days },
-    });
-    return response.data;
+  getDailyTrends: (days?: number) => {
+    const query = days ? `?days=${days}` : '';
+    return apiRequest<{ trends: Array<{ date: string; total_amount: number; expense_count: number }> }>(`/analytics/trends/daily${query}`);
   },
-};
-
-export default api; 
+}; 
