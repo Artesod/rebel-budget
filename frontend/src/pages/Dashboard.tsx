@@ -1,113 +1,109 @@
 import React from 'react';
+import GameProgress from '../components/GameProgress';
+import { mockData, Transaction, FinancialGoal } from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
+
+const SpeechBubble = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative inline-block">
+    <div className="bg-p5-white text-p5-black border-comic border-4 rounded-comic px-4 py-2 shadow-p5-pop text-lg md:text-xl font-extrabold uppercase tracking-wider animate-p5-pop">
+      {children}
+    </div>
+    <svg className="absolute left-6 -bottom-3" width="30" height="15" viewBox="0 0 30 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 30,0 15,15" fill="#fff" stroke="#e60012" strokeWidth="2"/>
+    </svg>
+  </div>
+);
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+  
+  // Get user's display name (prefer full name, fallback to email, then default)
+  const getUserDisplayName = () => {
+    if (user?.full_name && user.full_name.trim()) {
+      return user.full_name.split(' ')[0]; // Use first name only
+    }
+    if (user?.email) {
+      return user.email.split('@')[0]; // Use email username part
+    }
+    return 'Financial Warrior';
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Financial Dashboard</h1>
-        <p className="text-gray-600">
-          Welcome to your Finance AI Assistant! This dashboard will show your financial overview, 
-          recent expenses, and AI-powered insights.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-            </div>
-            <div className="ml-4">
-              <h3 className="text-sm font-medium text-gray-900">Total Expenses</h3>
-              <p className="text-2xl font-semibold text-green-600">$0.00</p>
-            </div>
+    <div className="space-y-4 font-comic p-2 md:p-4 relative w-full">
+      {/* Top Row - Welcome Message and Stats in one horizontal line */}
+      <div className="bg-p5-card border-comic border-4 rounded-comic shadow-p5 p-6 animate-p5-slide-in hover:scale-105 hover:shadow-p5-pop transition-all duration-300">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+          {/* Welcome Message */}
+          <div className="flex-shrink-0">
+            <SpeechBubble>Welcome Back, {getUserDisplayName()}!</SpeechBubble>
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
+          
+          {/* Stats Cards - Always horizontal on medium+ screens */}
+          <div className="flex-1 flex flex-col sm:flex-row gap-4 min-w-0">
+            <div className="bg-p5-red bg-opacity-90 border-comic border-4 rounded-comic p-3 shadow-p5-pop text-center hover:scale-105 hover:shadow-p5 transition-all duration-300 flex-1">
+              <h3 className="text-xs font-bold text-p5-white uppercase mb-1">Total Balance</h3>
+              <p className="text-lg font-extrabold text-p5-yellow drop-shadow">${mockData.userProgress.totalBalance.toLocaleString()}</p>
             </div>
-            <div className="ml-4">
-              <h3 className="text-sm font-medium text-gray-900">This Month</h3>
-              <p className="text-2xl font-semibold text-blue-600">$0.00</p>
+            <div className="bg-p5-black border-comic border-4 rounded-comic p-3 shadow-p5-pop text-center hover:scale-105 hover:shadow-p5 transition-all duration-300 flex-1">
+              <h3 className="text-xs font-bold text-p5-white uppercase mb-1">Monthly Savings</h3>
+              <p className="text-lg font-extrabold text-p5-yellow drop-shadow">${mockData.userProgress.monthlySavings.toLocaleString()}</p>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                </svg>
-              </div>
-            </div>
-            <div className="ml-4">
-              <h3 className="text-sm font-medium text-gray-900">Avg Daily</h3>
-              <p className="text-2xl font-semibold text-purple-600">$0.00</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-            </div>
-            <div className="ml-4">
-              <h3 className="text-sm font-medium text-gray-900">Categories</h3>
-              <p className="text-2xl font-semibold text-orange-600">0</p>
+            <div className="bg-p5-yellow border-comic border-4 rounded-comic p-3 shadow-p5-pop text-center hover:scale-105 hover:shadow-p5 transition-all duration-300 flex-1">
+              <h3 className="text-xs font-bold text-p5-black uppercase mb-1">Investment Returns</h3>
+              <p className="text-lg font-extrabold text-p5-red drop-shadow">+${mockData.userProgress.investmentReturns}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Getting Started</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 border border-gray-200 rounded-lg">
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </div>
-            <h3 className="font-medium text-gray-900 mb-2">Add Expenses</h3>
-            <p className="text-sm text-gray-600">Start by adding your daily expenses to track your spending</p>
+      {/* Main Content Row - All three sections horizontally */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Game Progress - Takes up 4 columns */}
+        <div className="lg:col-span-4 animate-p5-slide-in">
+          <GameProgress
+            level={mockData.userProgress.level}
+            experience={mockData.userProgress.experience}
+            nextLevelExp={mockData.userProgress.nextLevelExp}
+            achievements={mockData.achievements}
+          />
+        </div>
+
+        {/* Recent Transactions - Takes up 4 columns */}
+        <div className="lg:col-span-4 bg-p5-card border-comic border-4 rounded-comic shadow-p5 p-6 animate-p5-slide-in hover:scale-105 hover:shadow-p5-pop transition-all duration-300">
+          <h3 className="text-xl font-extrabold text-p5-white uppercase mb-4 tracking-widest">Recent Transactions</h3>
+          <div className="space-y-3">
+            {mockData.transactions.slice(0, 5).map((transaction: Transaction) => (
+              <div key={transaction.id} className="flex items-center justify-between p-3 bg-p5-gray rounded-comic border-comic border-2 hover:scale-105 hover:bg-opacity-80 transition-all duration-300">
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-p5-white uppercase text-sm truncate">{transaction.name}</p>
+                  <p className="text-xs text-p5-yellow">{transaction.category}</p>
+                </div>
+                <span className={`font-extrabold text-sm ml-2 flex-shrink-0 ${transaction.amount > 0 ? 'text-p5-yellow' : 'text-p5-red'}`}>
+                  {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
+                </span>
+              </div>
+            ))}
           </div>
-          
-          <div className="text-center p-4 border border-gray-200 rounded-lg">
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <h3 className="font-medium text-gray-900 mb-2">Get AI Insights</h3>
-            <p className="text-sm text-gray-600">Let AI analyze your spending patterns and provide recommendations</p>
-          </div>
-          
-          <div className="text-center p-4 border border-gray-200 rounded-lg">
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <h3 className="font-medium text-gray-900 mb-2">View Analytics</h3>
-            <p className="text-sm text-gray-600">Explore detailed analytics and spending predictions</p>
+        </div>
+
+        {/* Financial Goals - Takes up 4 columns */}
+        <div className="lg:col-span-4 bg-p5-card border-comic border-4 rounded-comic shadow-p5 p-6 animate-p5-slide-in hover:scale-105 hover:shadow-p5-pop transition-all duration-300">
+          <h3 className="text-xl font-extrabold text-p5-white uppercase mb-4 tracking-widest">Financial Goals</h3>
+          <div className="space-y-4">
+            {mockData.financialGoals.map((goal: FinancialGoal) => (
+              <div key={goal.id} className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-p5-yellow font-bold uppercase truncate">{goal.name}</span>
+                  <span className="text-p5-white flex-shrink-0 ml-2">{goal.target}</span>
+                </div>
+                <div className="w-full bg-p5-black rounded-comic h-3 border-comic border-2 overflow-hidden">
+                  <div
+                    className="bg-p5-red h-3 rounded-comic transition-all duration-500 animate-p5-swoosh"
+                    style={{ width: `${goal.progress}%` }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

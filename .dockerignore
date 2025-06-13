@@ -1,0 +1,60 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+deployment-guide.md
+*.md
+
+# Environment files
+.env
+.env.*
+!.env.example
+!env.*.example
+
+# Node modules and build artifacts
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/dist
+
+# Python
+backend/__pycache__
+backend/.pytest_cache
+backend/venv
+backend/env
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/__pycache__
+
+# Database
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Misc
+.coverage
+.nyc_output
+coverage 

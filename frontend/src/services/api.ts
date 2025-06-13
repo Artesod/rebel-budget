@@ -10,25 +10,33 @@ import {
   InsightsResponse, 
   CategorySuggestion 
 } from '../types/ai';
+import { TokenManager } from './authService';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api/v1';
 
-// Generic API request function
+// Generic API request function with authentication
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
+  const token = TokenManager.getToken();
   
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
     ...options,
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      // Token expired or invalid
+      TokenManager.removeToken();
+      window.location.href = '/';
+    }
     throw new Error(`API request failed: ${response.statusText}`);
   }
 
