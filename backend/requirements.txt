@@ -15,8 +15,8 @@ openai
 
 # Essential Security (Manual Entry Apps)
 python-jose[cryptography]  # JWT tokens
-passlib[bcrypt]==1.7.4    # Password hashing
-bcrypt==4.1.3             # Compatible bcrypt version
+passlib[bcrypt]==1.7.4    # Password hashing (pinned version)
+bcrypt==4.0.1             # Compatible bcrypt version for Python 3.13
 python-multipart          # Form handling
 
 # Optional: Enhanced Security (add later if needed)

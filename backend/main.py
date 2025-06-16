@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.routers import expenses, ai_assistant, analytics, auth, admin
@@ -21,6 +23,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Security middleware (only in production)
+use_https = os.getenv("USE_HTTPS", "false").lower() == "true"
+if use_https:
+    # HTTPS redirect middleware
+    app.add_middleware(HTTPSRedirectMiddleware)
+    
+    # Trusted host middleware for production
+    allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost").split(",")
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
+
 # Configure CORS
 cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
@@ -31,6 +43,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    
+    # Security headers for HTTPS
+    if use_https:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    
+    return response
+
 # Include routers
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
@@ -38,9 +66,13 @@ app.include_router(expenses.router, prefix="/api/v1")
 app.include_router(ai_assistant.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
 
-# Static files and frontend serving
+
+# Static files and frontend serving (only if built frontend exists)
 static_dir = Path("static")
-if static_dir.exists():
+static_files_dir = Path("static/static")
+index_file = Path("static/index.html")
+
+if static_dir.exists() and static_files_dir.exists() and index_file.exists():
     # Mount static files (CSS, JS, images) - React build puts files in static/css and static/js
     app.mount("/static", StaticFiles(directory="static/static"), name="static")
     

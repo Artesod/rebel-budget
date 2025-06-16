@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from ..models.database import get_db
 from ..models.expense import Expense
 from ..services.ai_service import get_financial_insights, chat_with_assistant
+from ..utils.security import get_current_user
 
 router = APIRouter(prefix="/ai", tags=["ai-assistant"])
 
@@ -23,12 +24,17 @@ class InsightsResponse(BaseModel):
     summary: Dict[str, Any]
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(message: ChatMessage, db: Session = Depends(get_db)):
+async def chat(
+    message: ChatMessage, 
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     """Chat with the AI financial assistant"""
     
     # Get recent expenses for context
     thirty_days_ago = datetime.now() - timedelta(days=30)
     recent_expenses = db.query(Expense).filter(
+        Expense.user_id == current_user["user_id"],
         Expense.date >= thirty_days_ago
     ).all()
     
@@ -53,13 +59,15 @@ async def chat(message: ChatMessage, db: Session = Depends(get_db)):
 @router.get("/insights", response_model=InsightsResponse)
 async def get_insights(
     days: int = 30,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     """Get AI-powered financial insights based on recent expenses"""
     
-    # Get expenses from the specified number of days
+    # Get expenses from the specified number of days for the current user
     start_date = datetime.now() - timedelta(days=days)
     expenses = db.query(Expense).filter(
+        Expense.user_id == current_user["user_id"],
         Expense.date >= start_date
     ).all()
     

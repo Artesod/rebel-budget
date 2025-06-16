@@ -160,8 +160,36 @@ rate_limiter = RateLimit()
 # Dependencies for FastAPI
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Get current user from JWT token"""
-    token = credentials.credentials
-    return Auth.verify_token(token)
+    try:
+        token = credentials.credentials
+        return Auth.verify_token(token)
+    except HTTPException as e:
+        # Log the authentication error for debugging
+        log_security_event("AUTH_ERROR", None, f"Token verification failed: {e.detail}")
+        raise e
+    except Exception as e:
+        # Handle any other authentication errors
+        log_security_event("AUTH_ERROR", None, f"Unexpected auth error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed"
+        )
+
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Optional
+
+security_optional = HTTPBearer(auto_error=False)
+
+async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional)):
+    """Get current user from JWT token - optional (for debugging)"""
+    try:
+        if not credentials:
+            return None
+        token = credentials.credentials
+        return Auth.verify_token(token)
+    except Exception as e:
+        log_security_event("AUTH_DEBUG", None, f"Optional auth failed: {str(e)}")
+        return None
 
 async def rate_limit_check(request: Request):
     """Rate limiting dependency"""

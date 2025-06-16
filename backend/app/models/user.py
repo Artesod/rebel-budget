@@ -34,8 +34,8 @@ class User(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     last_activity = Column(DateTime, default=func.now())
     
-    # Relationships (to be added)
-    # expenses = relationship("Expense", back_populates="user")
+    # Relationships
+    expenses = relationship("Expense", back_populates="user")
     # goals = relationship("FinancialGoal", back_populates="user")
 
     def verify_password(self, password: str) -> bool:

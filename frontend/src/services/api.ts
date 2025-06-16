@@ -12,7 +12,7 @@ import {
 } from '../types/ai';
 import { TokenManager } from './authService';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api/v1';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
 
 // Generic API request function with authentication
 async function apiRequest<T>(
