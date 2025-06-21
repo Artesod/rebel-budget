@@ -1,6 +1,8 @@
 import React from 'react';
 import GameProgress from '../components/GameProgress';
-import { mockData, Transaction, FinancialGoal } from '../data/mockData';
+import AnalyticsSummary from '../components/AnalyticsSummary';
+import RecentExpenses from '../components/RecentExpenses';
+import { mockData } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
 
 const SpeechBubble = ({ children }: { children: React.ReactNode }) => (
@@ -68,42 +70,15 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* Recent Transactions - Takes up 4 columns */}
-        <div className="lg:col-span-4 bg-p5-card border-comic border-4 rounded-comic shadow-p5 p-6 animate-p5-slide-in hover:scale-105 hover:shadow-p5-pop transition-all duration-300">
-          <h3 className="text-xl font-extrabold text-p5-white uppercase mb-4 tracking-widest">Recent Transactions</h3>
-          <div className="space-y-3">
-            {mockData.transactions.slice(0, 5).map((transaction: Transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-3 bg-p5-gray rounded-comic border-comic border-2 hover:scale-105 hover:bg-opacity-80 transition-all duration-300">
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-p5-white uppercase text-sm truncate">{transaction.name}</p>
-                  <p className="text-xs text-p5-yellow">{transaction.category}</p>
-                </div>
-                <span className={`font-extrabold text-sm ml-2 flex-shrink-0 ${transaction.amount > 0 ? 'text-p5-yellow' : 'text-p5-red'}`}>
-                  {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
+        {/* Recent Expenses - Takes up 4 columns - NOW REAL DATA */}
+        <div className="lg:col-span-4 animate-p5-slide-in">
+          <RecentExpenses limit={5} />
         </div>
 
-        {/* Financial Goals - Takes up 4 columns */}
-        <div className="lg:col-span-4 bg-p5-card border-comic border-4 rounded-comic shadow-p5 p-6 animate-p5-slide-in hover:scale-105 hover:shadow-p5-pop transition-all duration-300">
-          <h3 className="text-xl font-extrabold text-p5-white uppercase mb-4 tracking-widest">Financial Goals</h3>
-          <div className="space-y-4">
-            {mockData.financialGoals.map((goal: FinancialGoal) => (
-              <div key={goal.id} className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-p5-yellow font-bold uppercase truncate">{goal.name}</span>
-                  <span className="text-p5-white flex-shrink-0 ml-2">{goal.target}</span>
-                </div>
-                <div className="w-full bg-p5-black rounded-comic h-3 border-comic border-2 overflow-hidden">
-                  <div
-                    className="bg-p5-red h-3 rounded-comic transition-all duration-500 animate-p5-swoosh"
-                    style={{ width: `${goal.progress}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+        {/* Analytics Summary - Takes up 4 columns - REAL DATA */}
+        <div className="lg:col-span-4 animate-p5-slide-in">
+          <div className="h-full">
+            <AnalyticsSummary months={3} />
           </div>
         </div>
       </div>

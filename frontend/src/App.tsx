@@ -7,6 +7,7 @@ import Analytics from './pages/Analytics';
 import Login from './pages/Login';
 import { Mascot } from './components/Mascot';
 import { MascotProvider, useMascotContext } from './components/MascotContext';
+import AIChat from './components/AIChat';
 import { AuthProvider, useAuth, ProtectedRoute } from './contexts/AuthContext';
 import MascotDemo from './components/MascotDemo';
 import './index.css';
@@ -318,20 +319,26 @@ const FloatingActionButton = ({ onClick }: { onClick: () => void }) => {
 // Inner App component that uses the mascot context
 const AppContent = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const mascot = useMascotContext();
   const { isAuthenticated, isLoading } = useAuth();
   
-  // Example mascot interactions
+  // Example mascot interactions - now opens AI chat
   const handleMascotClick = () => {
     const messages = [
-      "Hey there! Need help with your finances?",
-      "I'm here to help you manage your money better!",
-      "Want to see some insights about your spending?",
-      "Let's make your financial goals a reality!",
-      "Click around and explore - I'll be here if you need me!"
+      "Hey there! Let me open the chat so we can talk about your finances!",
+      "I'm here to help! Let's have a conversation about your money goals.",
+      "Ready to chat about your spending? I've got insights for you!",
+      "Let's talk finance! Opening our chat now.",
+      "Time for some financial wisdom! Chat with me!"
     ];
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     mascot.showMessage(randomMessage, 'happy', 'speaking');
+    
+    // Open AI chat after a short delay to let the message show
+    setTimeout(() => {
+      setIsAIChatOpen(true);
+    }, 1000);
   };
 
   const handleLoginSuccess = () => {
@@ -371,6 +378,22 @@ const AppContent = () => {
       
       {/* Persona 5 Menu Overlay */}
       <PersonaMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      
+      {/* AI Chat Modal */}
+      {isAIChatOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="relative w-full max-w-2xl max-h-[80vh]">
+            {/* Close button */}
+            <button
+              onClick={() => setIsAIChatOpen(false)}
+              className="absolute -top-2 -right-2 z-10 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 transition-colors shadow-lg"
+            >
+              ×
+            </button>
+            <AIChat />
+          </div>
+        </div>
+      )}
       
       {/* Mascot */}
       <Mascot
