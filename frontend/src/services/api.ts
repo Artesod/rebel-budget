@@ -12,7 +12,39 @@ import {
 } from '../types/ai';
 import { TokenManager } from './authService';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+// Automatic environment detection for API URL
+const getApiBaseUrl = () => {
+  // If environment variable is set, use it (for manual override)
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Automatic detection based on hostname and environment
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+  
+  // Production detection
+  if (process.env.NODE_ENV === 'production') {
+    // If deployed to a domain, use the same domain for API
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return `${protocol}//${hostname}/api/v1`;
+    }
+  }
+  
+  // Development detection
+  // If accessing via IP (local network), use the same IP for backend
+  if (hostname.match(/^192\.168\.\d+\.\d+$/)) {
+    return `http://${hostname.replace(':3000', '')}:8000/api/v1`;
+  }
+  
+  // Default fallback for localhost
+  return 'http://localhost:8000/api/v1';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Log the detected API URL for debugging
+console.log(`🌐 API Base URL detected: ${API_BASE_URL}`);
 
 // Generic API request function with authentication
 async function apiRequest<T>(

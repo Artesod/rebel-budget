@@ -69,9 +69,12 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 async def login(login_data: UserLogin, db: Session = Depends(get_db)):
     """Login user"""
     
+    print(f"🔐 Login attempt for email: {login_data.email}")
+    
     # Find user
     user = db.query(User).filter(User.email == login_data.email).first()
     if not user:
+        print(f"❌ User not found for email: {login_data.email}")
         log_security_event("LOGIN_FAILED", None, f"Email not found: {login_data.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -87,6 +90,7 @@ async def login(login_data: UserLogin, db: Session = Depends(get_db)):
     
     # Verify password
     if not Auth.verify_password(login_data.password, user.hashed_password):
+        print(f"❌ Invalid password for user: {user.email}")
         # Increment failed attempts
         user.failed_login_attempts += 1
         
@@ -112,6 +116,7 @@ async def login(login_data: UserLogin, db: Session = Depends(get_db)):
     # Create token
     token = Auth.create_token({"id": user.id, "email": user.email, "is_admin": user.is_admin})
     
+    print(f"✅ Login successful for user: {user.email}")
     log_security_event("LOGIN_SUCCESS", user.id, f"Email: {user.email}")
     
     return TokenResponse(

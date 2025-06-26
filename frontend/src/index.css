@@ -4,6 +4,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* Prevent white flash during page load */
+html {
+  background-color: #111111;
+}
+
 /* Floating carousel animation for background elements */
 @keyframes floatLeftCarousel {
   0% {
@@ -26,6 +31,20 @@
   }
 }
 
+/* Gentle floating animation for sprites */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -33,6 +52,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #111111; /* P5 black to prevent white flash */
 }
 
 code {

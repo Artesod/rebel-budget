@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { authAPI, User } from '../services/authService';
 
 interface AuthContextType {
@@ -23,56 +23,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check if user is authenticated on app start
   useEffect(() => {
+    console.log('🔄 AuthProvider: useEffect started');
+    
     const initializeAuth = async () => {
+      // Minimum loading time to prevent flash
+      const startTime = Date.now();
+      const minLoadingTime = 100; // Reduced to 100ms minimum loading
+      
       try {
         if (authAPI.isAuthenticated()) {
-          // Try to get user from storage first
-          const storedUser = authAPI.getCurrentUserFromStorage();
-          if (storedUser) {
-            setUser(storedUser);
-          }
-          
-          // Then refresh from server to ensure data is current
+          console.log('🔑 AuthProvider: Token found, validating...');
+          // If we have a token, verify it with the server immediately
+          // Don't set user from storage first to avoid flash
           try {
             const currentUser = await authAPI.getCurrentUser();
+            console.log('✅ AuthProvider: User validated:', currentUser.email);
             setUser(currentUser);
           } catch (error) {
-            // If server request fails, keep stored user but log the error
-            console.warn('Failed to refresh user data:', error);
+            // If server request fails, token is invalid - clear it
+            console.warn('❌ AuthProvider: Token validation failed:', error);
+            await authAPI.logout();
+            setUser(null);
           }
+        } else {
+          console.log('🚫 AuthProvider: No token found');
+          // No token, user is not authenticated
+          setUser(null);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('💥 AuthProvider: Auth initialization error:', error);
         // Clear any invalid tokens
         await authAPI.logout();
+        setUser(null);
       } finally {
-        setIsLoading(false);
+        // Ensure minimum loading time to prevent flash
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+        
+        console.log(`⏱️ AuthProvider: Setting loading to false in ${remainingTime}ms`);
+        setTimeout(() => {
+          console.log('🏁 AuthProvider: Loading complete');
+          setIsLoading(false);
+        }, remainingTime);
       }
     };
 
     initializeAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
     const response = await authAPI.login({ email, password });
     setUser(response.user);
-  };
+  }, []);
 
-  const register = async (email: string, password: string, fullName?: string): Promise<void> => {
+  const register = useCallback(async (email: string, password: string, fullName?: string): Promise<void> => {
     const response = await authAPI.register({ 
       email, 
       password, 
       full_name: fullName 
     });
     setUser(response.user);
-  };
+  }, []);
 
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     await authAPI.logout();
     setUser(null);
-  };
+  }, []);
 
-  const refreshUser = async (): Promise<void> => {
+  const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const currentUser = await authAPI.getCurrentUser();
       setUser(currentUser);
@@ -81,17 +99,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If refresh fails, logout the user
       await logout();
     }
-  };
+  }, [logout]);
 
-  const value: AuthContextType = {
+  const isAuthenticated = useMemo(() => !!user, [user]);
+
+  const value: AuthContextType = useMemo(() => ({
     user,
-    isAuthenticated: !!user,
+    isAuthenticated,
     isLoading,
     login,
     register,
     logout,
     refreshUser,
-  };
+  }), [user, isAuthenticated, isLoading, login, register, logout, refreshUser]);
 
   return (
     <AuthContext.Provider value={value}>

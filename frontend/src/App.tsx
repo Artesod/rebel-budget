@@ -10,119 +10,12 @@ import { MascotProvider, useMascotContext } from './components/MascotContext';
 import AIChat from './components/AIChat';
 import { AuthProvider, useAuth, ProtectedRoute } from './contexts/AuthContext';
 import MascotDemo from './components/MascotDemo';
+import SpriteBackground from './components/SpriteBackground';
 import './index.css';
 
 const queryClient = new QueryClient();
 
-// Background floating carousel component
-const BackgroundFloatingCarousel = () => {
-  const elements = [];
-  
-  // Generate floating elements that move from right to left
-  for (let i = 0; i < 20; i++) {
-    const size = Math.random() * 60 + 30; // Random size between 30-90px
-    const topPosition = Math.random() * 100; // Random vertical position (%)
-    const animationDelay = Math.random() * 10; // Stagger appearance over 10 seconds
-    const opacity = Math.random() * 0.6 + 0.2; // Random opacity between 0.2-0.8
-    const duration = Math.random() * 15 + 10; // Animation duration between 10-25 seconds
-    
-    // Random element type (star, music note, or speech bubble)
-    const elementType = Math.floor(Math.random() * 3);
-    
-    elements.push(
-      <div
-        key={i}
-        className="absolute pointer-events-none"
-        style={{
-          top: `${topPosition}%`,
-          right: '-100px', // Start off-screen to the right
-          opacity: opacity,
-          animationDelay: `${animationDelay}s`,
-          animation: `floatLeftCarousel ${duration}s linear infinite`
-        }}
-      >
-        {elementType === 0 && (
-          // Nested Star Design with More Distinct Layers
-          <svg
-            width={size}
-            height={size}
-            viewBox="0 0 32 32"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="animate-p5-wiggle"
-          >
-            {/* Outer star layer - Red */}
-            <polygon
-              points="16,2 20,12 31,12 22,19 25,30 16,23 7,30 10,19 1,12 12,12"
-              fill="#e60012"
-              stroke="#111"
-              strokeWidth="2"
-            />
-            {/* Middle star layer - Yellow, 70% scale, more distinct positioning */}
-            <polygon
-              points="16,5 18.8,12.4 26.2,12.4 20.7,17.1 22.8,25.1 16,21.7 9.2,25.1 11.3,17.1 5.8,12.4 13.2,12.4"
-              fill="#ffe600"
-              stroke="#111"
-              strokeWidth="1.8"
-            />
-            {/* Inner star layer - White, 40% scale, very distinct */}
-            <polygon
-              points="16,8.8 17.6,14.4 22.4,14.4 19.2,17.6 20.4,23.2 16,20.8 11.6,23.2 12.8,17.6 9.6,14.4 14.4,14.4"
-              fill="#ffffff"
-              stroke="#e60012"
-              strokeWidth="1.5"
-            />
-            {/* Tiny center dot for extra layering effect */}
-            <circle
-              cx="16"
-              cy="16"
-              r="1.5"
-              fill="#111"
-            />
-          </svg>
-        )}
-        
-        {elementType === 1 && (
-          // Music Note
-          <svg
-            width={size}
-            height={size}
-            viewBox="0 0 40 40"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="animate-p5-pop"
-          >
-            <circle cx="12" cy="28" r="6" fill="#ffe600" stroke="#e60012" strokeWidth="2"/>
-            <rect x="17" y="8" width="3" height="20" fill="#e60012"/>
-            <path d="M20 8 Q28 6 32 12 Q28 10 20 12" fill="#ffe600" stroke="#e60012" strokeWidth="1"/>
-          </svg>
-        )}
-        
-        {elementType === 2 && (
-          // Speech Bubble
-          <svg
-            width={size}
-            height={size}
-            viewBox="0 0 60 60"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="animate-p5-pop"
-          >
-            <circle cx="30" cy="25" r="20" fill="#fff" stroke="#e60012" strokeWidth="2"/>
-            <polygon points="25,40 35,40 30,50" fill="#fff" stroke="#e60012" strokeWidth="2"/>
-            <text x="30" y="30" textAnchor="middle" className="text-xs font-extrabold fill-p5-black">!</text>
-          </svg>
-        )}
-      </div>
-    );
-  }
-  
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {elements}
-    </div>
-  );
-};
+
 
 // Persona 5 Menu Component
 const PersonaMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
@@ -321,7 +214,7 @@ const AppContent = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const mascot = useMascotContext();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   
   // Example mascot interactions - now opens AI chat
   const handleMascotClick = () => {
@@ -345,33 +238,26 @@ const AppContent = () => {
             mascot.showMessage("Welcome to Rebel Budget! I'm here to help you manage your money!", 'excited', 'celebrating');
   };
 
-  // Show loading screen while checking authentication
+  console.log('🎯 AppContent render:', { isLoading, isAuthenticated, user: !!user });
+
+  // Show minimal loading screen while checking authentication
   if (isLoading) {
+    console.log('⏳ AppContent: Showing loading screen');
     return (
-      <div className="min-h-screen bg-p5-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl font-extrabold text-p5-white uppercase tracking-widest mb-4 animate-p5-pop">
-                          Rebel Budget
-          </div>
-          <div className="text-p5-yellow text-xl font-bold animate-pulse">
-            Loading...
-          </div>
-        </div>
-      </div>
+      <div className="min-h-screen bg-p5-black"></div>
     );
   }
 
   // Show login screen if not authenticated
   if (!isAuthenticated) {
+    console.log('🔐 AppContent: Showing Login component');
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
   
   return (
     <div className="min-h-screen bg-p5-black bg-halftone bg-repeat relative overflow-x-hidden font-comic">
-      {/* Overflowing P5 background elements */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <BackgroundFloatingCarousel />
-      </div>
+      {/* Sprite-based background elements */}
+      <SpriteBackground />
       
       {/* Floating Action Button */}
       <FloatingActionButton onClick={() => setIsMenuOpen(true)} />

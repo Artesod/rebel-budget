@@ -8,9 +8,9 @@ const LogoSplash: React.FC<LogoSplashProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<'logo' | 'text' | 'complete'>('logo');
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setPhase('text'), 1500);
-    const timer2 = setTimeout(() => setPhase('complete'), 3000);
-    const timer3 = setTimeout(() => onComplete(), 3500);
+    const timer1 = setTimeout(() => setPhase('text'), 1200);
+    const timer2 = setTimeout(() => setPhase('complete'), 2500);
+    const timer3 = setTimeout(() => onComplete(), 2800);
 
     return () => {
       clearTimeout(timer1);
@@ -21,18 +21,12 @@ const LogoSplash: React.FC<LogoSplashProps> = ({ onComplete }) => {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-p5-black via-red-900 to-p5-black flex items-center justify-center z-50 overflow-hidden">
-      {/* Animated Background Pattern */}
+      {/* Minimal Background Pattern */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Diagonal stripes */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-transparent via-p5-red to-transparent transform -skew-x-12 animate-pulse"></div>
-          <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-transparent via-p5-yellow to-transparent transform skew-x-12 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        </div>
-        
-        {/* Floating shapes */}
-        <div className="absolute top-20 left-10 w-16 h-16 border-2 border-p5-red transform rotate-45 opacity-30 animate-p5-float"></div>
-        <div className="absolute bottom-32 right-16 w-20 h-20 border-2 border-p5-yellow transform -rotate-12 opacity-25 animate-p5-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/3 right-1/4 w-12 h-12 bg-p5-yellow transform rotate-45 opacity-20 animate-p5-float" style={{ animationDelay: '1.5s' }}></div>
+        {/* Static accent shapes */}
+        <div className="absolute top-20 left-10 w-12 h-12 border-2 border-p5-red transform rotate-45 opacity-20"></div>
+        <div className="absolute bottom-32 right-16 w-16 h-16 border-2 border-p5-yellow transform -rotate-12 opacity-15"></div>
+        <div className="absolute top-1/3 right-1/4 w-8 h-8 bg-p5-yellow transform rotate-45 opacity-10"></div>
       </div>
 
       {/* Main Logo Container */}

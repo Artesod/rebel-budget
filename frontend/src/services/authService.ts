@@ -96,7 +96,7 @@ async function authApiRequest<T>(
     if (response.status === 401) {
       // Token expired or invalid
       TokenManager.removeToken();
-      window.location.href = '/login';
+      // Let the React auth system handle the redirect naturally
     }
     
     const errorData = await response.json().catch(() => ({}));

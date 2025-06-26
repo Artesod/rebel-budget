@@ -34,7 +34,9 @@ if use_https:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 # Configure CORS
-cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://192.168.50.57:3000,http://192.168.50.5:3000").split(",")
+print(f"🌐 CORS Origins configured: {cors_origins}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
@@ -42,6 +44,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Request debugging middleware
+@app.middleware("http")
+async def debug_requests(request: Request, call_next):
+    # Log request details
+    print(f"🔍 {request.method} {request.url.path}")
+    print(f"📍 Client: {request.client.host if request.client else 'Unknown'}")
+    print(f"🏷️ Headers: Origin={request.headers.get('origin')}, User-Agent={request.headers.get('user-agent', 'Unknown')[:50]}")
+    
+    response = await call_next(request)
+    
+    print(f"📤 Response: {response.status_code}")
+    if response.status_code >= 400:
+        print(f"❌ Error response for {request.method} {request.url.path}")
+    
+    return response
 
 # Security headers middleware
 @app.middleware("http")
