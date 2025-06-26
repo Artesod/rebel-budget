@@ -34,7 +34,7 @@ if use_https:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 # Configure CORS
-cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://192.168.50.57:3000,http://192.168.50.5:3000").split(",")
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 print(f"🌐 CORS Origins configured: {cors_origins}")
 
 app.add_middleware(
