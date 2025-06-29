@@ -52,6 +52,27 @@ const SpriteBackground: React.FC = () => {
         height: 50,
         animationType: 'float'
     },
+    {
+        name: 'note',
+        path: '/sprites/NoteAsset1-Y.png',
+        width: 50,
+        height: 50,
+        animationType: 'float'
+    },
+    {
+        name: 'note',
+        path: '/sprites/NoteAsset1-R.png',
+        width: 50,
+        height: 50,
+        animationType: 'float'
+    },
+    {
+        name: 'note',
+        path: '/sprites/NoteAsset1-G.png',
+        width: 50,
+        height: 50,
+        animationType: 'float'
+    },
   ];
 
   useEffect(() => {

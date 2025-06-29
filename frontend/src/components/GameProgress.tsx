@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AchievementsModal from './AchievementsModal';
 
 export type AchievementCategory = 
   | 'savings' 
@@ -90,227 +91,91 @@ const GameProgress: React.FC<GameProgressProps> = ({
   nextLevelExp,
   achievements,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | 'all'>('all');
+  const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const progressPercentage = (experience / nextLevelExp) * 100;
   
-  const getRarityColor = (rarity: AchievementRarity) => {
-    switch (rarity) {
-      case 'common': return 'text-gray-400';
-      case 'rare': return 'text-blue-400';
-      case 'epic': return 'text-purple-400';
-      case 'legendary': return 'text-yellow-400';
-      default: return 'text-gray-400';
-    }
-  };
-  
-  const getRarityBorder = (rarity: AchievementRarity) => {
-    switch (rarity) {
-      case 'common': return 'border-gray-400';
-      case 'rare': return 'border-blue-400';
-      case 'epic': return 'border-purple-400';
-      case 'legendary': return 'border-yellow-400';
-      default: return 'border-gray-400';
-    }
-  };
-  
-  const filteredAchievements = selectedCategory === 'all' 
-    ? achievements 
-    : achievements.filter(a => a.category === selectedCategory);
-  
-  const categories: { key: AchievementCategory | 'all', label: string, icon: string }[] = [
-    { key: 'all', label: 'All', icon: '🏆' },
-    { key: 'savings', label: 'Savings', icon: '💰' },
-    { key: 'budgeting', label: 'Budget', icon: '📊' },
-    { key: 'investing', label: 'Invest', icon: '📈' },
-    { key: 'spending', label: 'Spending', icon: '💳' },
-    { key: 'goals', label: 'Goals', icon: '🎯' },
-    { key: 'streaks', label: 'Streaks', icon: '🔥' },
-    { key: 'milestones', label: 'Milestones', icon: '🏁' },
-    { key: 'special', label: 'Special', icon: '⭐' },
-  ];
+
 
   return (
-    <div className="bg-p5-card border-comic border-4 rounded-comic shadow-p5 p-8 flex flex-col h-full relative overflow-hidden">
+    <div className="bg-p5-card border-comic border-4 rounded-comic shadow-p5 p-4 flex flex-col h-full relative overflow-hidden">
       {/* Splash SVG background */}
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" viewBox="0 0 400 200" fill="none"><path d="M0 0L400 0L400 200L0 180Z" fill="#ffe600" fillOpacity="0.06"/></svg>
-      <div className="flex items-center justify-between mb-8 z-10">
+      <div className="flex items-center justify-between mb-3 z-10">
         <div>
-          <h2 className="text-3xl font-extrabold text-p5-white uppercase tracking-widest">Level {level}</h2>
-          <p className="text-p5-yellow font-bold uppercase">Financial Master</p>
+          <h2 className="text-xl lg:text-2xl font-extrabold text-p5-white uppercase tracking-widest">Level {level}</h2>
+          <p className="text-p5-yellow font-bold uppercase text-xs lg:text-sm">Financial Master</p>
         </div>
-        <div className="w-20 h-20 bg-p5-red border-comic border-4 rounded-full flex items-center justify-center shadow-p5-pop animate-float">
-          <span className="text-3xl font-extrabold text-p5-yellow drop-shadow">{level}</span>
+        <div className="w-12 h-12 lg:w-16 lg:h-16 bg-p5-red border-comic border-4 rounded-full flex items-center justify-center shadow-p5-pop animate-float">
+          <span className="text-xl lg:text-2xl font-extrabold text-p5-yellow drop-shadow">{level}</span>
         </div>
       </div>
 
-      <div className="mb-8 z-10">
-        <div className="flex justify-between text-base text-p5-white font-bold mb-2 uppercase">
+      <div className="mb-3 z-10">
+        <div className="flex justify-between text-xs lg:text-sm text-p5-white font-bold mb-2 uppercase">
           <span>Experience</span>
           <span>{experience} / {nextLevelExp} XP</span>
         </div>
-        <div className="w-full bg-p5-black border-comic border-4 rounded-comic h-4">
+        <div className="w-full bg-p5-black border-comic border-4 rounded-comic h-2 lg:h-3">
           <div
-            className="bg-p5-red h-4 rounded-comic transition-all duration-500"
+            className="bg-p5-red h-2 lg:h-3 rounded-comic transition-all duration-500"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
       </div>
 
-      <div className="z-10">
-        <h3 className="text-xl font-extrabold text-p5-white uppercase mb-4 tracking-widest">Achievements</h3>
-        
-        {/* Category Filter */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <button
-              key={category.key}
-              onClick={() => setSelectedCategory(category.key)}
-              className={`px-3 py-1 text-xs font-bold uppercase rounded-comic border-2 transition-all duration-200 ${
-                selectedCategory === category.key
-                  ? 'bg-p5-red text-p5-white border-p5-white'
-                  : 'bg-p5-black text-p5-yellow border-p5-red hover:bg-p5-red hover:text-p5-white'
-              }`}
-            >
-              <span className="mr-1">{category.icon}</span>
-              {category.label}
-            </button>
-          ))}
-        </div>
+      <div className="z-10 flex-1 flex flex-col">
+        <h3 className="text-base lg:text-lg font-extrabold text-p5-white uppercase mb-2 tracking-widest">Achievements</h3>
         
         {/* Achievement Stats */}
-        <div className="mb-4 grid grid-cols-2 gap-4">
-          <div className="bg-p5-black bg-opacity-50 border-2 border-p5-red rounded-comic p-3">
-            <div className="text-p5-yellow font-bold text-sm">UNLOCKED</div>
-            <div className="text-p5-white font-extrabold text-xl">
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <div className="bg-p5-black bg-opacity-50 border-2 border-p5-red rounded-comic p-2 text-center">
+            <div className="text-p5-yellow font-bold text-xs">UNLOCKED</div>
+            <div className="text-p5-white font-extrabold text-sm lg:text-base">
               {achievements.filter(a => a.unlocked).length} / {achievements.length}
             </div>
           </div>
-          <div className="bg-p5-black bg-opacity-50 border-2 border-p5-yellow rounded-comic p-3">
-            <div className="text-p5-red font-bold text-sm">COMPLETION</div>
-            <div className="text-p5-white font-extrabold text-xl">
+          <div className="bg-p5-black bg-opacity-50 border-2 border-p5-yellow rounded-comic p-2 text-center">
+            <div className="text-p5-red font-bold text-xs">COMPLETION</div>
+            <div className="text-p5-white font-extrabold text-sm lg:text-base">
               {Math.round((achievements.filter(a => a.unlocked).length / achievements.length) * 100)}%
             </div>
           </div>
         </div>
-        
-        {/* Achievement List */}
-        <div className="space-y-3 max-h-64 overflow-y-auto">
-          {filteredAchievements.map((achievement) => (
-            <div
-              key={achievement.id}
-              className={`relative rounded-comic border-4 shadow-p5-pop transition-all duration-300 hover:scale-102 ${
-                achievement.unlocked
-                  ? 'bg-p5-white border-p5-black'
-                  : 'bg-gradient-to-br from-p5-black to-gray-900 border-p5-red'
-              }`}
-            >
-              {/* Rarity accent stripe */}
-              <div className={`absolute left-0 top-0 bottom-0 w-2 rounded-l-comic ${
-                achievement.rarity === 'common' ? 'bg-gray-400' :
-                achievement.rarity === 'rare' ? 'bg-blue-400' :
-                achievement.rarity === 'epic' ? 'bg-purple-400' :
-                'bg-yellow-400'
-              }`}></div>
-              
-              <div className="flex items-center p-4 pl-6">
-                {/* Achievement Icon */}
-                <div className={`w-14 h-14 rounded-comic flex items-center justify-center mr-4 border-4 shadow-lg relative ${
-                  achievement.unlocked 
-                    ? 'bg-p5-red border-p5-black' 
-                    : 'bg-gradient-to-br from-gray-700 to-gray-800 border-p5-white'
-                }`}>
-                  <span className={`text-2xl ${achievement.unlocked ? '' : 'opacity-50'}`}>
-                    {achievement.icon}
-                  </span>
-                  {!achievement.unlocked && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-p5-black bg-opacity-60 rounded-comic">
-                      <span className="text-p5-white text-lg">🔒</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Achievement Content */}
-                <div className="flex-1">
-                  {/* Title and Rarity */}
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className={`font-extrabold uppercase text-base ${
-                      achievement.unlocked ? 'text-p5-black' : 'text-p5-yellow'
-                    }`}>
-                      {achievement.title}
-                    </h4>
-                    <div className={`px-2 py-1 rounded-comic text-xs font-bold uppercase border-2 ${
-                      achievement.unlocked ? (
-                        achievement.rarity === 'common' ? 'bg-gray-100 text-gray-700 border-gray-400' :
-                        achievement.rarity === 'rare' ? 'bg-blue-100 text-blue-700 border-blue-400' :
-                        achievement.rarity === 'epic' ? 'bg-purple-100 text-purple-700 border-purple-400' :
-                        'bg-yellow-100 text-yellow-700 border-yellow-400'
-                      ) : (
-                        achievement.rarity === 'common' ? 'bg-gray-800 text-gray-300 border-gray-600' :
-                        achievement.rarity === 'rare' ? 'bg-blue-900 text-blue-300 border-blue-600' :
-                        achievement.rarity === 'epic' ? 'bg-purple-900 text-purple-300 border-purple-600' :
-                        'bg-yellow-900 text-yellow-300 border-yellow-600'
-                      )
-                    }`}>
-                      {achievement.rarity}
-                    </div>
-                  </div>
-                  
-                  {/* Description */}
-                  <p className={`text-sm font-bold mb-2 ${
-                    achievement.unlocked ? 'text-p5-black opacity-80' : 'text-p5-white opacity-90'
-                  }`}>
-                    {achievement.description}
-                  </p>
-                  
-                  {/* Progress bar for achievements with progress */}
-                  {achievement.progress !== undefined && achievement.maxProgress && (
-                    <div className="mb-2">
-                      <div className="flex justify-between text-xs font-bold mb-1">
-                        <span className={achievement.unlocked ? 'text-p5-black' : 'text-p5-white'}>
-                          Progress
-                        </span>
-                        <span className={achievement.unlocked ? 'text-p5-red' : 'text-p5-yellow'}>
-                          {achievement.progress} / {achievement.maxProgress}
-                        </span>
-                      </div>
-                      <div className="w-full bg-p5-gray rounded-full h-3 border-2 border-p5-black">
-                        <div
-                          className="bg-p5-red h-full rounded-full transition-all duration-500"
-                          style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Bottom info row */}
-                  <div className="flex items-center justify-between text-xs font-bold">
-                    {/* Unlock date */}
-                    {achievement.unlocked && achievement.unlockedDate && (
-                      <div className="text-p5-red">
-                        Unlocked: {achievement.unlockedDate.toLocaleDateString()}
-                      </div>
-                    )}
-                    
-                    {/* Reward */}
-                    {achievement.reward && achievement.unlocked && (
-                      <div className="bg-p5-yellow text-p5-black px-2 py-1 rounded-comic border-2 border-p5-black">
-                        {achievement.reward}
-                      </div>
-                    )}
-                    
-                    {/* Status for locked achievements */}
-                    {!achievement.unlocked && (
-                      <div className="bg-p5-red text-p5-white px-3 py-1 rounded-comic border-2 border-p5-white text-xs font-bold uppercase tracking-wide">
-                        🔒 Locked
-                      </div>
-                    )}
-                  </div>
+
+        {/* Recent Achievements Preview */}
+        <div className="mb-3 flex-1">
+          <p className="text-xs font-bold text-p5-yellow uppercase mb-2">Recent Achievements</p>
+          <div className="space-y-2">
+            {achievements.filter(a => a.unlocked).slice(0, 2).map((achievement) => (
+              <div key={achievement.id} className="flex items-center p-2 bg-p5-gray bg-opacity-30 rounded-comic border border-p5-white">
+                <span className="text-base mr-2">{achievement.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-p5-white uppercase truncate">{achievement.title}</p>
+                  <p className="text-xs text-p5-yellow">{achievement.reward}</p>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+            {achievements.filter(a => a.unlocked).length > 2 && (
+              <p className="text-xs text-p5-yellow text-center font-bold">
+                +{achievements.filter(a => a.unlocked).length - 2} more unlocked
+              </p>
+            )}
+          </div>
         </div>
+
+        {/* View All Button */}
+        <button
+          onClick={() => setIsAchievementsModalOpen(true)}
+          className="w-full bg-p5-red text-p5-white py-2 px-3 rounded-comic border-comic border-2 border-p5-yellow hover:bg-red-600 hover:scale-105 hover:shadow-p5-pop transition-all duration-300 text-sm font-extrabold uppercase tracking-wider"
+        >
+          🏆 View All Achievements
+        </button>
       </div>
+
+      <AchievementsModal 
+        isOpen={isAchievementsModalOpen}
+        onClose={() => setIsAchievementsModalOpen(false)}
+      />
     </div>
   );
 };

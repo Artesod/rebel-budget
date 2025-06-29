@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import Dashboard from './pages/Dashboard';
@@ -11,6 +11,7 @@ import AIChat from './components/AIChat';
 import { AuthProvider, useAuth, ProtectedRoute } from './contexts/AuthContext';
 import MascotDemo from './components/MascotDemo';
 import SpriteBackground from './components/SpriteBackground';
+import aiIntegration from './services/aiIntegrationService';
 import './index.css';
 
 const queryClient = new QueryClient();
@@ -215,6 +216,24 @@ const AppContent = () => {
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const mascot = useMascotContext();
   const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
+  
+  // Register mascot controls with AI integration on mount
+  useEffect(() => {
+    aiIntegration.setMascotControls({
+      showMessage: mascot.showMessage,
+      changeEmotion: mascot.changeEmotion,
+      changeState: mascot.changeState
+    });
+  }, [mascot.showMessage, mascot.changeEmotion, mascot.changeState]);
+
+  // React to page changes with AI
+  useEffect(() => {
+    if (isAuthenticated) {
+      const currentPage = location.pathname.substring(1) || 'dashboard';
+      aiIntegration.reactToPageChange(currentPage);
+    }
+  }, [location.pathname, isAuthenticated]);
   
   // Example mascot interactions - now opens AI chat
   const handleMascotClick = () => {
@@ -267,16 +286,64 @@ const AppContent = () => {
       
       {/* AI Chat Modal */}
       {isAIChatOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="relative w-full max-w-2xl max-h-[80vh]">
-            {/* Close button */}
+        <div className="fixed inset-0 bg-p5-black bg-opacity-90 flex items-center justify-center z-50 p-4 animate-p5-slide-in">
+          {/* Background decoration */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-10 right-20 w-20 h-20 border-4 border-p5-red transform rotate-45 animate-float opacity-20"></div>
+            <div className="absolute bottom-20 left-10 w-16 h-16 bg-p5-yellow transform -rotate-12 animate-float opacity-20" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute top-1/2 right-10 w-12 h-12 bg-p5-red transform rotate-45 animate-float opacity-20" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute bottom-10 right-1/3 w-14 h-14 border-4 border-p5-yellow transform -rotate-45 animate-float opacity-20" style={{ animationDelay: '3s' }}></div>
+          </div>
+          
+          <div className="relative w-full max-w-7xl h-[85vh] max-h-[900px] flex gap-6">
+            {/* Close button - Persona 5 style */}
             <button
               onClick={() => setIsAIChatOpen(false)}
-              className="absolute -top-2 -right-2 z-10 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 transition-colors shadow-lg"
+              className="absolute -top-4 -right-4 z-20 bg-p5-red text-p5-white border-comic border-4 border-p5-yellow rounded-comic w-12 h-12 flex items-center justify-center hover:bg-p5-yellow hover:text-p5-black hover:border-p5-red hover:scale-110 transition-all duration-300 shadow-p5-pop font-extrabold text-xl animate-p5-pop"
             >
-              ×
+              ✕
             </button>
-            <AIChat />
+            
+            {/* Title bar above chat */}
+            <div className="absolute -top-16 left-0 right-0 flex justify-center">
+              <div className="bg-p5-yellow border-comic border-4 border-p5-red rounded-comic px-8 py-3 shadow-p5-pop transform -rotate-2 animate-p5-slide-in">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-p5-red border-comic border-2 border-p5-black rounded-full flex items-center justify-center">
+                    <span className="text-p5-white font-bold">🤖</span>
+                  </div>
+                  <h2 className="text-p5-black font-extrabold text-xl uppercase tracking-widest">Financial AI Chat</h2>
+                  <div className="w-8 h-8 bg-p5-black border-comic border-2 border-p5-yellow rounded-full flex items-center justify-center">
+                    <span className="text-p5-yellow font-bold">💰</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Chat Mascot Companion */}
+            <div className="flex-shrink-0 w-64 flex flex-col items-center justify-center animate-p5-slide-in" style={{ animationDelay: '0.2s' }}>
+              {/* Mascot in chat mode */}
+              <div className="relative">
+                
+                {/* Large mascot for chat */}
+                <Mascot
+                  emotion={mascot.emotion}
+                  state={mascot.state}
+                  message="" // No speech bubble since we're in chat mode
+                  isVisible={true}
+                  onClick={() => {}} // Disabled click in chat mode
+                  position="center"
+                  size="large"
+                  className="transform scale-125 hover:scale-[1.35] transition-all duration-300"
+                />
+                
+              </div>
+            
+            </div>
+            
+            {/* Chat Interface */}
+            <div className="flex-1 min-w-0">
+              <AIChat />
+            </div>
           </div>
         </div>
       )}

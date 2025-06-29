@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Expense, CreateExpenseRequest, UpdateExpenseRequest } from '../types/expense';
 import { expenseAPI, aiAPI } from '../services/api';
+import { useMascotContext } from './MascotContext';
+import aiIntegration from '../services/aiIntegrationService';
 
 interface ExpenseFormProps {
   expense?: Expense;
@@ -130,6 +132,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   onCancel,
   isEditing,
 }) => {
+  const { showMessage, changeEmotion, changeState } = useMascotContext();
+  
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
@@ -144,6 +148,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const [categories, setCategories] = useState<string[]>([]);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [aiConfidence, setAiConfidence] = useState<number>(0);
 
   useEffect(() => {
     fetchCategories();
@@ -199,11 +204,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     if (!description.trim()) return;
 
     setIsLoadingAI(true);
+    changeEmotion('thinking');
+    changeState('helping');
+    
     try {
-      const suggestion = await aiAPI.categorizeDescription(description);
-      setAiSuggestion(suggestion.suggested_category);
+      const result = await aiIntegration.smartCategorizeExpense(description);
+      setAiSuggestion(result.category);
+      setAiConfidence(result.confidence);
+      
+      // The mascot message is already handled by the AI integration service
     } catch (err) {
       console.error('AI categorization failed:', err);
+      showMessage("Hmm, I'm having trouble analyzing that. You can choose the category manually!", 'concerned', 'helping');
     } finally {
       setIsLoadingAI(false);
     }
@@ -216,6 +228,14 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         category: aiSuggestion
       }));
       setAiSuggestion(null);
+      setAiConfidence(0);
+      
+      // Mascot reaction to accepting suggestion
+      if (aiConfidence > 0.7) {
+        showMessage('Excellent! I was confident about that one!', 'happy', 'celebrating');
+      } else {
+        showMessage('Thanks for trusting my suggestion!', 'winking', 'speaking');
+      }
     }
   };
 
@@ -266,9 +286,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       if (isEditing && expense) {
         savedExpense = await expenseAPI.updateExpense(expense.id, expenseData as UpdateExpenseRequest);
         setSuccess('Expense updated successfully! 🎉');
+        showMessage('Perfect! Your expense has been updated!', 'happy', 'celebrating');
       } else {
         savedExpense = await expenseAPI.createExpense(expenseData as CreateExpenseRequest);
         setSuccess('Expense added successfully! 🎉');
+        
+        // Notify AI integration about the new expense for smart reactions
+        await aiIntegration.reactToExpenseAdded(savedExpense);
+        
+        // Check for achievements
+        setTimeout(() => {
+          aiIntegration.checkAndCelebrateAchievements();
+        }, 2000);
       }
 
       setTimeout(() => {
@@ -370,6 +399,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                   <div className="flex items-center mt-1">
                     <Icon name={getCategoryIcon(aiSuggestion)} className="w-5 h-5 mr-2 text-p5-yellow" />
                     <span className="text-p5-yellow font-extrabold">{aiSuggestion}</span>
+                    {aiConfidence > 0 && (
+                      <div className={`ml-2 px-2 py-1 rounded-comic text-xs font-bold ${
+                        aiConfidence > 0.8 ? 'bg-green-500 text-white' :
+                        aiConfidence > 0.6 ? 'bg-yellow-500 text-black' :
+                        'bg-orange-500 text-white'
+                      }`}>
+                        {Math.round(aiConfidence * 100)}% confident
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
