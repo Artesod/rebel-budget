@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface SpriteConfig {
+  id: number;
   name: string;
   path: string;
   width: number;
@@ -18,6 +19,7 @@ interface FloatingSprite {
   duration: number;
   delay: number;
   animationType: string;
+  createdAt: number;
 }
 
 const SpriteBackground: React.FC = () => {
@@ -29,84 +31,133 @@ const SpriteBackground: React.FC = () => {
         path: '/sprites/StarAsset1-RY.png',
         width: 50,
         height: 50,
-        animationType: 'float'
+        animationType: 'float',
+        id: 1
     },
     {
         name: 'star',
         path: '/sprites/StarAsset3-Y.png',
         width: 50,
         height: 50,
-        animationType: 'float'
+        animationType: 'float',
+        id: 2
     },
     {
         name: 'star',
         path: '/sprites/StarAsset4-G.png',
         width: 50,
         height: 50,
-        animationType: 'float'
+        animationType: 'float',
+        id: 3
     },
     {
         name: 'star',
         path: '/sprites/StarAsset2-R.png',
         width: 50,
         height: 50,
-        animationType: 'float'
+        animationType: 'float',
+        id: 4
     },
     {
         name: 'note',
         path: '/sprites/NoteAsset1-Y.png',
         width: 50,
         height: 50,
-        animationType: 'float'
+        animationType: 'float',
+        id: 5
     },
     {
         name: 'note',
         path: '/sprites/NoteAsset1-R.png',
         width: 50,
         height: 50,
-        animationType: 'float'
+        animationType: 'float',
+        id: 6
     },
     {
         name: 'note',
         path: '/sprites/NoteAsset1-G.png',
         width: 50,
         height: 50,
-        animationType: 'float'
+        animationType: 'float',
+        id: 7
     },
+    {
+      name: 'note',
+      path: '/sprites/DiamondAsset1-Y.png',
+      width: 50,
+      height: 50,
+      animationType: 'float',
+      id: 8
+  },
+  {
+      name: 'note',
+      path: '/sprites/DiamondAsset1-R.png',
+      width: 50,
+      height: 50,
+      animationType: 'float',
+      id: 9
+  },
+  {
+      name: 'note',
+      path: '/sprites/DiamondAsset1-G.png',
+      width: 50,
+      height: 50,
+      animationType: 'float',
+      id: 10
+  },
   ];
 
   useEffect(() => {
-    const generateSprites = () => {
-      const newSprites: FloatingSprite[] = [];
+    let spriteId = 0;
+    
+    const createSingleSprite = () => {
+      const randomSprite = spriteConfigs[Math.floor(Math.random() * spriteConfigs.length)];
+      const size = Math.random() * 120 + 40; 
+      const yPosition = Math.random() * 100; 
+      const opacity = Math.random() * 0.4 + 0.5; 
+      const duration = Math.random() * 8 + 15; 
       
-      // Generate 15-20 random sprites
-      const spriteCount = Math.floor(Math.random() * 6) + 15;
+      const newSprite = {
+        id: spriteId++,
+        sprite: randomSprite,
+        x: -100, 
+        y: yPosition,
+        size,
+        opacity,
+        duration,
+        delay: 0,
+        animationType: randomSprite.animationType || 'float',
+        createdAt: Date.now()
+      };
       
-      for (let i = 0; i < spriteCount; i++) {
-        const randomSprite = spriteConfigs[Math.floor(Math.random() * spriteConfigs.length)];
-        const size = Math.random() * 200 + 20; 
-        const yPosition = Math.random() * 100; 
-        const delay = Math.random() * 10; 
-        const opacity = Math.random() * 0.6 + 0.3; 
-        const duration = Math.random() * 15 + 10; 
-        
-        newSprites.push({
-          id: i,
-          sprite: randomSprite,
-          x: -100, 
-          y: yPosition,
-          size,
-          opacity,
-          duration,
-          delay,
-          animationType: randomSprite.animationType || 'float'
-        });
-      }
-      
-      setSprites(newSprites);
+      setSprites(prevSprites => [...prevSprites, newSprite]);
     };
 
-    generateSprites();
+    // Create first sprite immediately
+    createSingleSprite();
+
+    // Create a new sprite every 8 seconds
+    const spriteInterval = setInterval(() => {
+      createSingleSprite();
+      createSingleSprite();
+      createSingleSprite();
+    }, 1000);
+
+    const cleanupInterval = setInterval(() => {
+      setSprites(prevSprites => {
+        const currentTime = Date.now();
+        return prevSprites.filter(sprite => {
+          const age = (currentTime - sprite.createdAt) / 1000;
+          return age < sprite.duration + 3;
+        });
+      });
+    }, 10000);
+
+    return () => {
+      clearInterval(spriteInterval);
+      clearInterval(cleanupInterval);
+    };
   }, []);
 
   const getAnimationClass = (animationType: string) => {
@@ -125,16 +176,15 @@ const SpriteBackground: React.FC = () => {
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {sprites.map((sprite) => (
-        <div
-          key={sprite.id}
-          className="absolute pointer-events-none"
+              {sprites.map((sprite) => (
+          <div
+            key={sprite.id}
+            className="absolute pointer-events-none"
           style={{
             top: `${sprite.y}%`,
             right: '-100px', // Start off-screen to the right
             opacity: sprite.opacity,
-            animationDelay: `${sprite.delay}s`,
-            animation: `floatLeftCarousel ${sprite.duration}s linear infinite`
+            animation: `floatLeftCarousel ${sprite.duration}s linear forwards`
           }}
         >
           <img
